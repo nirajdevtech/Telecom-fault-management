@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Telecom Towers</title>
+</head>
+<body>
+
+<h1>Telecom Towers</h1>
+
+<input type="text" id="name" placeholder="Tower Name">
+<input type="text" id="location" placeholder="Location">
+<button onclick="addTower()">Add Tower</button>
+
+<h3>List:</h3>
+<ul id="towerList"></ul>
+
+<script>
+    const API = "http://localhost:8080/api/towers";
+
+    // LOAD DATA
+    function loadTowers() {
+        fetch(API)
+            .then(res => res.json())
+            .then(data => {
+                const list = document.getElementById("towerList");
+                list.innerHTML = "";
+
+                data.forEach(tower => {
+                    const li = document.createElement("li");
+
+                    li.innerHTML = `
+                        ${tower.name} - ${tower.location}
+                        <button onclick="editTower(${tower.id}, '${tower.name}', '${tower.location}')">Edit</button>
+                        <button onclick="deleteTower(${tower.id})">Delete</button>
+                    `;
+
+                    list.appendChild(li);
+                });
+            });
+    }
+
+    // ADD
+    function addTower() {
+        const name = document.getElementById("name").value;
+        const location = document.getElementById("location").value;
+
+        fetch(API, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, location })
+        })
+        .then(() => {
+            loadTowers();
+        });
+    }
+
+    // DELETE
+    function deleteTower(id) {
+        fetch(`${API}/${id}`, {
+            method: "DELETE"
+        })
+        .then(() => loadTowers());
+    }
+
+    // EDIT
+    function editTower(id, name, location) {
+        const newName = prompt("Enter new name:", name);
+        const newLocation = prompt("Enter new location:", location);
+
+        if (!newName || !newLocation) return;
+
+        fetch(`${API}/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                id: id,
+                name: newName,
+                location: newLocation
+            })
+        })
+        .then(() => loadTowers());
+    }
+
+    // INIT
+    loadTowers();
+</script>
+
+</body>
+</html>
